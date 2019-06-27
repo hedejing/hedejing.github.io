@@ -1,11 +1,22 @@
 ---
 layout: post
-title:  "BRDF"
+title:  "Tensorflow.js+Three.js实现交互式的网络推断和绘制"
 date:   2019-05-19 23:24:54
-categories: DEMO
+categories: Demo
 ---
-<!-- <iframe width="600" src="/images/BRDF/brdf.mp4" frameborder="0" allowfullscreen></iframe> -->
-<video width="640px" muted controls>
+这是给组里的一个关于BRDF压缩的项目做的可视化工具，这个工具是在TensorBoard的一个叫做Embedding Projector的插件的基础上做的。TensorBoard和Embedding Projector的相关信息可以在它们的Github仓库上找到：[TensorBoard] 和 [Embedding Projector]。
+
+[TensorBoard]: https://github.com/tensorflow/tensorboard
+[Embedding Projector]: https://github.com/tensorflow/tensorboard/tree/master/tensorboard/plugins/projector
+
+我的工作主要是用Tensorflow.js+Three.js实现了交互式的inference和绘制。整个绘制流程类似deferred shading，步骤如下：
+1. 先绘制一遍场景，在fragment shader中输出光源方向和视线方向encode之后的信息；同时利用stencil buffer得到一个标记了screen space中绘制区域的mask；
+2. 将绘制得到的encode后的信息和mask从texture转成tensor，作为网络的输入使用给定的model进行inference，得到一个对应的tensor；这个tensor可以接着转成一个screen space的texture，其中每个pixel对应了一个brdf值；
+3. 再绘制一遍场景，在fragment shader中计算irradiance和brdf的乘积，得到最终的着色结果。
+
+实现以上过程后，结合Embedding Projector本身的功能，最终得到了一个做相似材质推荐和不同材质之间插值的可视化工具，下面是demo。
+
+<video width="750px" muted controls>
     <source src="/images/BRDF/brdf.mp4" type="video/mp4">
     <p>Your browser does not support the video element.</p>
 </video>
