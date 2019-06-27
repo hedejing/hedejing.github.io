@@ -1,0 +1,222 @@
+---
+layout: post
+title:  "IEEEVR2019"
+date:   2019-04-14 22:23:00
+categories: 分享
+---
+2019.03.23-2019.03.27，我参与了在日本大阪举行的IEEEVR会议。下面分享一些我在会议上听到的内容以及其他有趣的体验。
+<p align="center">
+<img src="/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-logo.png" width="400">
+</p>
+
+## 开会地点
+
+会议的举行地点是大阪的国际会议中心。
+
+![location](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-location1.jpg)
+
+![location](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-location2.jpg)
+
+国际会议中心位于大阪的中之岛，距离大阪的地标性建筑大阪城不是很远。会议标志中OSAKA中间的那个A代表的应该就是大阪城。
+
+<p align="center">
+<img src="/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-location3.jpg">
+</p>
+
+## Papers
+
+这是会议日程的一个示意图以及房间的分布。我和袁博都在rendering这个session做oral presentation，对应的房间是room D。
+
+![program-papers](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-program-papers.jpg)
+
+下面是这个房间的两张照片。房间不算很大，大概最多能容纳50-60人。
+
+![roomD](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-room1.jpg)
+
+![roomD](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-room2.jpg)
+
+我在rendering这个sessioin挑了其他两篇paper在这里进行分享。
+
+### Hybrid Mono-Stereo Rendering in Virtual Reality
+
+大家都知道VR对分辨率和帧率有较高的要求，如果丢帧的话会带来不好的体验，甚至导致头晕等身体不适的情况。虽然human percetion给VR带来了条帧。但同时，这篇文章的作者认为human perception也可以作为优化绘制算法的一个出发点。简单来说，就是要在不破坏体验的情况下，尽量减少绘制所需的计算量，从而提升体验。
+
+![challenge](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-challenge.jpg)
+
+
+他们找到了医学上的研究结果来支持他们的想法。下面是一个关于不同depth cue在不同距离下对产生depth perception的影响程度的示意图。他们主要关注的是binocular disparity这一项。binocular disparity指的是两眼看到的画面的差别。之所以VR中要绘制出两张不同的image，就是要形成binocular disparity使人产生深度感。但是，这个图表表明，binocular disparity对深度感知的影响随着距离指数下降。从而引出了他们的核心想法：只有当场景中的物体距离观察点足够靠近时，才进行stereo rendering（绘制两遍）；反之，只进行mono rendering（只绘制一遍）。所以，他们称他们的方法为hybrid mono-stereo rendering。
+
+<p align="center">
+<img src="/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-binocular-disparity.jpg">
+</p>
+
+下面是他们方法的一个示意图。图中L、R分别表示左、右两眼对应的camera，红色和蓝色的区域是对应的视锥体；C表示另外设置的一个中间camera，黄色区域是它的视锥体。可以看到LR负责了近距离部分场景的绘制，而C绘制了远距离部分场景的绘制。右侧分别是各个camera绘制出来的image，这三张image组合起来的到最后的结果。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-frustum-setting.jpg">
+</p>
+
+但是，如果把C的near plane和LR的far plane设置为相同的值的话，最终结果会出现明显的不连续的部分。为了解决这个问题，他们在远近的视锥体之间设计了一个重叠的部分，使得最终的画面能够连续变化。下图右侧是改进前后的例子。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-smooth-transition.jpg">
+</p>
+
+按照这个思路，他们首先给出了一个naive的pipeline。这个pipeline的问题在于：相较于传统的stereo rendering来说，C的绘制会是一个很大的overhead，如何优化C的绘制是一个重点。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-naive.jpg">
+</p>
+
+下图是他们最后实现的pipeline。首先做了frustum culling（但这并不关键），然后用剩下的geometry进行LR的绘制。LR的绘制完成后，得到的深度图可以用来给C的绘制做occlusion culling，从而极大地优化C的绘制。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-pipeline.jpg">
+</p>
+
+下图是他们最后实现的结果。可以看出使用occlusion culling确实带来了很大的提升。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-result.jpg">
+</p>
+
+但是，他们的方法是会导致一定的error的。如下图所示，同样的一个点p，用C绘制和用L绘制会被投影到不同的位置，所以直接将C绘制的结果拷贝到LR的画面中会带来一些error。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-error.jpg">
+</p>
+
+下图是他们计算local SSIM error的结果，可以看出m=3m的时候有比较明显的error，而m=8m时error没有那么明显。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-ssim.jpg">
+</p>
+
+毕竟他们的目标是perception driven的一个方法，所以他们还做了user study。参与者会看到两个分别用hybrid方法和传统的stereo方法绘制的画面，然后从中挑选最为喜欢的结果。他们在三个不同场景中进行了user study，下图是统计结果。他们此前认为hybrid方法的好坏主要取决于m的大小，但是从结果看来，两种方法的优劣和m的大小没有明显的相关性。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-user-study.jpg">
+</p>
+
+根据进一步的分析，他们认为两种方法的优劣主要取决于画面中是否有kink这种artifact。下图进一步阐述了这种artifact。在下图中，绿色通道是传统方法绘制的结果，红色通道是hybrid方法绘制的结果，通过这种方式可以直观地把两种方法绘制的结果组合在一起进行对比，并进一步发现hybrid方法会造成画面上线条的扭曲，也就是他们所形容的kink。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-kink.jpg">
+</p>
+
+由于第一个场景主要由球和平面组成，所以不会产生kink，两种方法的得分就没有明显的差距。而在第三个场景中，存在着明显的线条结构和纹理，所以参与者会看到明显的kink，导致hybrid方法的得分比传统方法的得分更低。最后他们也没有解决kink的问题，只是将其作为future work有待进一步的研究。总的来说他们的方法确实能够利用occlusion culling极大地提升绘制效率，但是实际效果的好坏跟场景有很大的相关性。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-kink2.jpg">
+</p>
+
+### Real-Time Continuous Level of Detail Rendering of Point Clouds
+
+这是一篇关于大规模点云的实时绘制的paper。传统的方法一般使用离散的LOD结构来减少需要绘制的点的数量，但是使用离散的LOD结果会有一系列问题：不同level之间的密度不一样，level突变的地方会变得很突兀，而且camera运动起来的话会有popping的问题。而这样问题在VR下更加明显，因为VR本身对performance要求更高，相较之下只能使用更低的LOD来绘制，使得不好的效果更加显眼。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-discrete-LOD.jpg">
+</p>
+
+因为离散的LOD会有各种各样的问题，所以他们想设计一种连续的LOD结构。连续有两方面，一是要随着距离连续变化，二是要随着画面的中间区域到边缘连续变化（和VR有关）。同时，这种连续的LOD结构应该没有明显的chunk，而且应该是逐点的连续变化。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-continuous-LOD.jpg">
+</p>
+
+他们的核心想法是要对原来的点云进行某种采样，使得点与点之间达到一定的距离，他们将这个距离称为target-spacing。这个target-spacing应该是和距离相关的，使得距离越远对原点云的采样越稀疏。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-target-spacing.jpg">
+</p>
+
+之前提到，state-of-art的方法一般使用离散的LOD结构。在这种结构中，不同的level表示以不同的point-spacing对原来的点云进行采样，如下图所示。在这种结构的基础上，如果简单地加上point-spacing>target-spacing的条件得到依然无法得到连续的点云分布。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-method1.jpg">
+</p>
+
+在普通的离散LOD结构基础上，他们通过一个很巧妙的方式解决了上面的问题。他们给每个点的level值加上了0-1的均匀随机数，对应地，每个点的point-spacing都会变小，范围在原来的point-spacing和下一层的point-spacing之间。加上随机数后，再使用point-spacing>target-spacing的条件进行采样，采样得到的便是point-spacing连续变化的点云。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-method2.jpg">
+</p>
+
+之前说过，target-spacing是基于物体到camera的距离的。在VR里，target-spacing还要随着画面的中间区域到边缘连续变化。因为人的眼睛对画面边缘的区域不敏感，所以可以以较低的分辨率绘制非中央区域的画面，所以target-spacing也可以相对地降低。这样做的话，便能得到下图中(a)这样的结果。但是(a)中的结果有一个明显的问题，就是边缘区域的画面由于点采样不足导致会有洞。为了补上这些洞，在绘制的时候还要将point-size设置为target-spacing，使得点与点之间的空洞能被填满，进而得到下图(b)这样的结果。
+
+然而，简单地将point-size设置为target-spacing还会有问题，那就是camera运动时点突然出现的popping。因为target-spacing决定了世界空间中点的大小，而target-spacing又和距离线性相关，所以投影到屏幕上的点的大小会是一个恒定的比较大的值，最终使得画面中新出现的点显得十分突兀。于是他们进一步细化了point-size的机制：当target-spacing等于point-spacing时，point-size设为0；当target-spacing对于point-spacing乘以某个0-1之间的常数blendRangeFactor时，才将point-size设为target-spacing的大小。这样改进后，当camera运动时点不会突然出现或者消失，而是逐渐从小变大或者从大变小，这样看起来就不会有popping的问题（如果想更好地理解这部分，最好还是看video）。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-method3.jpg">
+</p>
+
+最后，他们讲了一下具体的实现效果。他们使用compute shader来遍历原点云进行采样，采样的效率主要取决于显卡的带宽。在点的数目很大的情况下，这个操作无法做到一帧的时间内完成。因此，存放实际用于绘制的点的buffer是每隔几帧进行更新的。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-implementation.jpg">
+</p>
+
+## Posters
+
+接着讲一下我看到的一些有趣的poster。poster放在会场的一个中间区域，有兴趣的话可以上去和作者讨论。
+![poster](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-poster0.jpg)
+
+下面这个poster实现了一个在VR环境下写VR绘制程序的编辑器，让人身临其境地投入到coding之中。。
+
+<p align="center">
+<img src="
+/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-poster1.jpg" width="400">
+</p>
+
+下面这个poster的作者在fast forward的时候拿起了他们做的光学元器件进行介绍，然后吃掉了。。掉了。。了。。因为他们的工作就是用糖做这种光学元器件。
+![poster](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-poster2.jpg)
+
+## Exhibitions & Research Demos
+
+exhibition和research demos都是可以去体验的各种应用，是paper和poster之外的会议很重要的一部分。exhibition主要是企业的产品展示，下图是袁博去玩的某种力学传感器。
+
+![exhibition](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-exhibition.jpg)
+
+research demos有更多好玩的东西。下面这是在VR环境中实时做脑部手术的demo。这一类和VR/AR结合的医学应用还是挺多的。
+
+![demo](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-demo0.jpg)
+
+而下面这个是游戏类型的demo，在VR环境中滑雪。
+
+![demo](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-demo1.jpg)
+
+还有一个模拟鱼在水里游泳的demo，具体可以看我录的[视频](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-demo2.mov)。
+
+## Reception
+
+接下来分享一些会议内容之外的经历。正式会议的第一天晚上有一个reception，下面是reception的一些照片。reception上大家边吃边聊的氛围还是挺好的，只是站着吃东西实在有点累。。
+
+![reception](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-reception1.jpg)
+![reception](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-reception2.jpg)
+![reception](/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-reception3.jpg)
+
+## Retro Game Store
+
+参与会议之余我还去逛了一间在大阪的中古游戏店，里面收藏了很多老游戏，看到以前玩过的各种游戏的感觉还是挺有趣的。从门口进去可以看到一个大号的GameBoy，里面放的好像是超级马里奥。店里还放着一台叫virtual boy的设备，看起来很炫酷。起初我不知道这台设备是干什么用的，后来查了一下发现是任天堂在95年出的VR设备，算是世界上第一种游戏VR设备了。大家如果对日本的游戏文化感兴趣的话，到这种地方来看看也不错。
+
+<p align="center">
+<img src="/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-store1.jpg" width="400">
+<img src="/images/IEEEVR2019/ZJU-Rendering@IEEEVR2019-store2.jpg" width="400">
+</p>
