@@ -21,4 +21,4 @@ categories: [Show Some Demos]
     <p>Your browser does not support the video element.</p>
 </video> -->
 
-<iframe src="/images/BRDF/brdf.mp4" allowfullscreen> </iframe>
+<iframe src="/images/BRDF/brdf.mp4" allowfullscreen="1"> </iframe>
