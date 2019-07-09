@@ -2,7 +2,7 @@
 layout: post
 title:  "Mesh Shading(Asteroids)"
 date:   2019-06-21 17:30:01
-categories: Share
+categories: [Share My Thoughts]
 ---
 这是GDC2019上NVIDIA给的一个关于mesh shading的talk。mesh shading是一套新的shading pipeline，在这个talk里面他们结合了这个名为Asteroids的demo来介绍这套pipeline。这个demo的特点是geometry比较复杂，数据量特别大。
 

@@ -2,7 +2,7 @@
 layout: post
 title:  "IEEEVR2019"
 date:   2019-04-14 22:23:00
-categories: Share
+categories: [Share My Thoughts]
 ---
 2019.03.23-2019.03.27，我参与了在日本大阪举行的IEEEVR会议。下面分享一些我在会议上听到的内容以及其他有趣的体验。
 <p align="center">

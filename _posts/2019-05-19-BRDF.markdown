@@ -2,7 +2,7 @@
 layout: post
 title:  "Tensorflow.js+Three.js实现交互式的网络推断和绘制"
 date:   2019-05-19 23:24:54
-categories: Demo
+categories: [Show Some Demos]
 ---
 这是给组里的一个关于BRDF压缩的项目做的可视化工具，这个工具是在TensorBoard的一个叫做Embedding Projector的插件的基础上做的。TensorBoard和Embedding Projector的相关信息可以在它们的Github仓库上找到：[TensorBoard] 和 [Embedding Projector]。
 
