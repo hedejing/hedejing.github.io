@@ -16,9 +16,4 @@ categories: [Show Some Demos]
 
 实现以上过程后，结合Embedding Projector本身的功能，最终得到了一个做相似材质推荐和不同材质之间插值的可视化工具，下面是demo。
 
-<!-- <video width="750px" muted controls>
-    <source src="/images/BRDF/brdf.mp4" type="video/mp4">
-    <p>Your browser does not support the video element.</p>
-</video> -->
-
-<iframe src="/images/BRDF/brdf.mp4" allowfullscreen="1"> </iframe>
+<iframe src="https://onedrive.live.com/embed?cid=0B0052B9D85535CE&resid=B0052B9D85535CE%21201000&authkey=ADBINzj7eE6FTvg" width="320" height="175" frameborder="0" scrolling="no" allowfullscreen></iframe>

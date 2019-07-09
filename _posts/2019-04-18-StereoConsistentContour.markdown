@@ -9,10 +9,7 @@ categories: [Show Some Demos]
 [这篇paper]: http://www.cs.umsl.edu/~kang/Papers/kang_siggraph13.pdf
 
 video:
-<video width="750px" muted controls>
-    <source src="/images/StereoConsistentContours/video.mp4" type="video/mp4">
-    <p>Your browser does not support the video element.</p>
-</video>
+<iframe src="https://onedrive.live.com/embed?cid=0B0052B9D85535CE&resid=B0052B9D85535CE%21200999&authkey=AI5gxnaQXAZDN-Q" width="750px" frameborder="0" scrolling="no" allowfullscreen="1"></iframe>
 
 paper:
 <embed src="/images/StereoConsistentContours/paper.pdf" width="750px" height="500px"
