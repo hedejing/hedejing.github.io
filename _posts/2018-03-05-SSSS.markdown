@@ -1,0 +1,13 @@
+---
+layout: post
+title:  "人脸绘制"
+date:   2018-03-05 18:13:23
+categories: [Show Some Demos]
+---
+基于SSSS算法，在实验室的绘制引擎上实现人脸的次表面散射效果。而后又基于GDC2013上有关人脸绘制的[一个talk]，实现了two lobe specular和detail map进一步改善效果。
+
+[一个talk]: http://www.iryoku.com/stare-into-the-future
+
+实现效果:
+<iframe src="https://www.jianguoyun.com/p/DSjmJSYQ3aSlBhjDoNUB" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
+

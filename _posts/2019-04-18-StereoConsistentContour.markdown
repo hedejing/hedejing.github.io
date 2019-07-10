@@ -10,10 +10,6 @@ categories: [Show Some Demos]
 
 video:
 <iframe src="https://www.jianguoyun.com/p/DZGsegAQ3aSlBhjIhdUB" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
-<!-- <video width="750px" muted controls>
-    <source src="https://www.jianguoyun.com/p/DZGsegAQ3aSlBhjIhdUB">
-    <p>Your browser does not support the video element.</p>
-</video> -->
 
 paper:
 <embed src="/images/StereoConsistentContours/paper.pdf" width="750px" height="500px"
