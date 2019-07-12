@@ -1,0 +1,177 @@
+---
+layout: post
+title:  "利用LMS加速VR绘制"
+date:   2017-11-25 17:30:01
+categories: [Share My Thoughts]
+---
+
+本文讲诉的内容来自于GDC2017上NVIDIA的一个报告：[Accelerating Your VR Games with VRWorks]，报告中对VRWorks中的各个feature进行了介绍，其中主要介绍了LMS加速VR绘制的技术。本文主要讲的其中重点介绍的LMS技术，并结合主讲人Edward Liu的技术博客、官方提供的文档进行进一步的阐述。
+
+[Accelerating Your VR Games with VRWorks]: http://developer2.download.nvidia.com/assets/gameworks/downloads/regular/GDC17/VRWorks_GDC17_FINAL.pdf
+
+背景
+====
+
+LMS主要针对VR头显的光学变形问题进行绘制优化。VR头显的镜片类似一个放大镜，用来促进玩家的眼睛聚集到画面中心，并且达到一个视角更大的效果。但是这同时会带来画面变形的问题。从下图可以看到，画面外围的直线会变弯，有一种画面四周被挤压到中心的感觉。
+
+![](/images/LMS/783edd04dd7a4645992169c8cffc46e1.png)
+
+为了抵消这个变形，最终在头显中的显示的画面需要进行一个反向的变形，使得用户看到的是正常的画面。这个反向变形是由VR头显的软件来处理的，一般来说，我们只要渲染出正常画面，用VR头显的SDK提供的API上传到头显便可，反向变形的处理会包含在这个过程中。这过程里面就是做了一个resample的后处理。处理前后的效果如下所示：
+
+![](/images/LMS/933d72131943619eca89093b33581ecb.png)
+
+不难看出，处理之后的画面变小了，这是问题之一。再仔细看图中框住的部分，这部分在处理前后是一一对应的。中间绿色的部分在反向变形之后大小不变，而画面边缘的红色部分对应了一个更小的区域，这就带来了另外一个问题——我们渲染了一些不需要的像素，这些像素在resample的过程中被抛弃了。
+
+为了进一步说明，他们给出了一个shading
+rate的定义：帧缓冲上每单位面积着色样本点的数量（number of shading samples per
+unit area on the framebuffer）。shading rate反应了最后的画面中每一个像素点对应的着色计算的次数。如果直接把画面放大拉伸到原来的大小，那么就会导致中间部分shading rate小于1而周围部分大于1的情况，如下图所示：
+<p align="center">
+<img src="
+/images/LMS/91b2ba7c95bb3b8855c05ee6c4c9c589.png">
+</p>
+
+![](/images/LMS/91cdcd67d4ef71ea3efea7a7a9b8312f.png)
+
+这意味着方向变形使得最终结果产生了画面中间欠采样（undersampled）而边缘部分超采样（supersampled）的问题。为了解决画面中间欠采样的问题，VR应用通常会设置一个比显示分辨率更高的绘制分辨率，保证最后中间部分的画面精度达到原来目标的水平，但同时也会使得边缘部分的超采样问题更加地严重。为了解决这个超采样问题，加速绘制速度，他们先后提出了MRS和LMS两种技术。
+
+MRS和LMS
+========
+
+MRS
+---
+
+MRS（multi-resolution shading）是在LMS之前提出的技术。通过把原来的viewport划分3x3的9个viewport，中间的部分保持原来的大小，而边缘的
+viewport做相应的缩小来实现不同区域不同分辨率的绘制。同时，还需要设置对应的scissor切割对应的部分。
+
+![](/images/LMS/89d63e6066959b7857b2925c142b528d.png)
+
+如此一来，在光栅化之后进行着色的区域就缩小了。而缩小的部分正是超采样的部分，这样就省去了一些本用不到的像素的着色计算，提高绘制效率。当然，这样着色完之后的画面是变形的，可以明显看到画面中不同区域的不连续。还需要再做一个resample的后处理将画面还原到正常的样子，再通过VR头显的SDK上传图像。
+
+![](/images/LMS/8dc30829ead7322c6f53a794bcb3c9a9.png)
+
+一般来说，用多个viewport来绘制很费时间，最naïve的方法是跑绘制9次，每次设置不同的viewport和scissor。而NVIDIA的Maxwell架构或更新的显卡支持一次用多个viewport进行绘制，所以能够高效地完成MRS，提高绘制效率。
+
+LMS
+---
+
+LMS（lens-matched shading）是他们最新推出的技术。LMS同样是用来减少画面边缘的着色计算，核心是修改顶点着色器结束后得到的齐次裁剪空间坐标的w值，计算公式为w' = Ax + By + w。按照这个公式，x、y值越大的地方，w增大得越大，那么离画面中心越远w增大越多。因为之后x、y、z值会除以w值从齐次坐标转为三维坐标，所以原来在画面边缘的点位置会向画面中心移动。因为这个过程是线性的，所以光栅化还可以正常进行。通过设置四个viewport并且设置不同的A、B，在光栅化之后着色区域就变成了下图所示的八边形：
+
+![](/images/LMS/8ca699bf17e3daaecf535fb12183cbed.png)
+
+跟MRS一样，原本边缘区域的过度的着色计算减少了，绘制效率也就提高了。下面是使用LMS之后shading rate的效果图。
+
+![](/images/LMS/19c2734cf8088c51740e2a7b8021550e.png)
+
+MRS vs. LMS
+-----------
+
+下图是一个随着屏幕空间x值变化的shading
+rate分布对比图。可以看出，对比MRS的分段函数分布，LMS的shading
+rate变化更接近理想的情况。
+
+![](/images/LMS/749b2941810c326c0e4b51252b6592fb.png)
+
+总的来说，对比MRS和LMS，LMS有以下两个优点：
+
+-   LMS带来的shading
+    rate倒数变化能够更好地逼近VR头显镜片导致画面变形的变化。在两次resample的过程中，更好的逼近就能以更少的着色计算达到相同的画面质量。而且比起
+    MRS的分段变化，LMS的连续变化使得最终结果的画面精度的变化更加连续，观感更好。
+
+-   LMS只需要4个viewport，而MRS需要9个。viewport越少，绘制效率越高。
+
+以下是一个具体的例子。从细节的对比可以看出，LMS得到的画面锯齿更少，看起来更舒服。
+
+![](/images/LMS/3e5e52b55841b773c7a8409ac11d6264.png)
+
+将LMS整合到Unreal
+=================
+
+接下来他们介绍了将LMS整合到Unreal
+Engine所做的工作。Unreal主要用的是延迟着色的绘制框架，整合主要分成四个步骤：
+
+1.  在base pass中进行viewport的设置，修改w值，得到八边形的gbuffer。
+
+2.  在八边形的LMS空间做着色计算。
+
+3.  在八边形的LMS空间做后处理。
+
+4.  resample到线性空间，也就是还原到正常的矩形画面。
+
+![](/images/LMS/5ec15db72bc61194c2b7730045ee7c6f.png)
+
+下面仔细说一下这个过程中的要点。
+
+LMS空间和线性空间
+-----------------
+
+![](/images/LMS/26ae8006884ab8e145f7bd1743e06333.png)
+
+他们将原来uv在矩形中线形分布的区域和LMS得到的八边形区域区别开来，分别称为线性空间和LMS空间。下文会多次用到LMS空间。
+
+调整深度值
+----------
+
+在LMS空间，深度缓冲中取出来的深度值也是被w值修改影响过的。所以，当着色计算中用到深度值时，需要将LMS空间的深度值转到线性空间再进行计算。
+
+RENDER PASS
+-----------
+
+绘制中用到的render pass可以分成两类，一类是对三维体素进行处理的，例如base
+pass；另一类是后处理，例如SSR、SSAO。
+
+### Geometry Pass
+
+对于第一类pass，需要进行viewport相应的设置，执行w值的修改。前文探讨过，w值的修改使得原来画面边缘的点向画面中心靠近，得到一个较小的着色区域从而减少计算量。但是前文忽略的一点是，原来在画面外部的部分也会落到画面内来，也就是八边形以外的区域。为了把八边形外的着色计算去掉，需要在深度缓冲中绘制一个对应形状的boundary
+mask，深度值设置为近平面的值，结合提前深度剔除，就能把八边形以外的着色计算去掉。
+
+![](/images/LMS/741763bc8f0b0e9216f75d2a85522276.png)
+
+### Screen Space pass
+
+对于第二类pass，一般情况下会绘制一个全屏的矩形来进行后处理，但是LMS得到的中间结果都是一个较小的八边形区域，绘制全屏矩形同样会在八边形外的区域进行无谓的计算。同样我们可以采用在深度缓冲或者模版缓冲的方法，但是对于一些pass来说原来就占用了深度缓冲或者模板缓冲，而且还需要额外的缓冲绑定。一个简单有效的方法是，改为绘制一个全屏八边形。这个八边形是将全屏矩形切割的结果，uv的分布和全屏矩形相同。这样就不需要用到别的缓冲，也能达到减少计算量的结果。uv保持线形分布即可，因为gbuffer的数据储存本来就是线性的，只是取出来的数据是在LMS空间的，在计算的过程中如上文所说留意空间转换就好。
+
+![](/images/LMS/a7d1c9bfa70d6dffd438a5c24e57a8f0.png)
+
+光照着色
+--------
+
+在光照着色中，又有以下几个需要注意的地方。
+
+### 点光源
+
+在有向光的情况下，按照上文绘制一个全屏的八边形读取gbuffer进行计算即可。而对于点光源一类有形状的光源，也需要执行w值的修改来绘制光源（这里说的应该是light volume）。另一方面，在摄像机进入了光源内部的情况下，深度测试会被关闭，所以前文提到的boundary
+mask需要放到模板缓冲中。
+
+### 动态阴影
+
+一般使用shadow mapping来实现动态阴影。在shadow
+map生成阶段无需作修改，但是在shadow
+projection阶段需要执行w值的修改，保持在八边形区域中进行计算。
+
+### Tiled based
+
+如果使用来Tiled based lighting，还需要在compute
+shader中将八边形区域以外的线程杀掉，减少无用的计算。
+
+SSR和SSAO
+---------
+
+SSR和SSAO同属于Screen-space
+pass，如上文所说需要绘制一个全屏的八边形。但SSR和SSAO的特殊之处在于，它们都需要多次读取HZB（hierarchical
+z
+buffer，可以当作一种特殊的深度缓冲）进行计算。前文说到，每次读取深度值后需要进行LMS空间到线性空间的转换。但是在需要多次读取的情况下，多次的空间转换就增大了计算量。所以在构造HZB的时候，需要把深度值提前转换到线性空间，减少后续使用中空间转换的计算量。
+
+对于SSR，这个过程还需要更具体的说明。在marching的过程中，需要先将起点转到线性空间，然后一直在线性空间进行计算，到达终点后再转回LMS空间执行下一步操作。
+
+![](/images/LMS/70120e3485ac8722fb97b1c6ceecdfbd.png)
+
+参考资料
+========
+1. Accelerating Your VR Games with VRWorks
+   <http://developer2.download.nvidia.com/assets/gameworks/downloads/regular/GDC17/VRWorks_GDC17_FINAL.pdf>
+
+2. Lens Matched Shading and Unreal Engine 4 Integration 
+   <https://developer.nvidia.com/lens-matched-shading-and-unreal-engine-4-integration-part-1>
+
+3. VRWorks Graphics（demo和文档）
+   <https://developer.nvidia.com/gameworksdownload#?search=VRWorks>
