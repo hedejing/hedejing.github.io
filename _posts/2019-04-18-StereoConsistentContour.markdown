@@ -9,7 +9,7 @@ categories: [Show Some Demos]
 [这篇paper]: http://www.cs.umsl.edu/~kang/Papers/kang_siggraph13.pdf
 
 video:
-<iframe src="https://www.jianguoyun.com/p/DZGsegAQ3aSlBhjIhdUB" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
+<iframe src="http://pv35g2uxf.bkt.clouddn.com/video.mp4" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
 
 paper:
 <embed src="/images/StereoConsistentContours/paper.pdf" width="750px" height="500px"

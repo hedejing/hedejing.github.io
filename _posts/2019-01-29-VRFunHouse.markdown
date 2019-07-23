@@ -15,5 +15,5 @@ categories: [Show Some Demos]
 [VR Funhouse Mod Kit]: https://developer.nvidia.com/vr-funhouse-mod-kit
 
 video:
-<iframe src="https://www.jianguoyun.com/p/DcNpwYoQ3aSlBhixv9cB" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
+<iframe src="http://pv35g2uxf.bkt.clouddn.com/vr.mp4" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
 
