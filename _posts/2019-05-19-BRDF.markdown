@@ -14,6 +14,8 @@ categories: [Show Some Demos]
 2. 将绘制得到的encode后的信息和mask从texture转成tensor，作为网络的输入使用给定的model进行inference，得到一个对应的tensor；这个tensor可以接着转成一个screen space的texture，其中每个pixel对应了一个brdf值；
 3. 再绘制一遍场景，在fragment shader中计算irradiance和brdf的乘积，得到最终的着色结果。
 
-实现以上过程后，结合Embedding Projector本身的功能，最终得到了一个做相似材质推荐和不同材质之间插值的可视化工具，下面是demo。
+实现以上过程后，结合Embedding Projector本身的功能，最终得到了一个做相似材质推荐和不同材质之间插值的可视化工具。
 
-<iframe src="http://pv35g2uxf.bkt.clouddn.com/brdf.mp4" width="750px" height="500px"  frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
+demo: <http://pv35g2uxf.bkt.clouddn.com/vr.mp4>
+
+<!-- <iframe src="http://pv35g2uxf.bkt.clouddn.com/brdf.mp4" width="750px" height="500px"  frameborder="0" scrolling="no" allowfullscreen="true"></iframe> -->

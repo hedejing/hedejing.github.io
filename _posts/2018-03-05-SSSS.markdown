@@ -8,6 +8,6 @@ categories: [Show Some Demos]
 
 [一个talk]: http://www.iryoku.com/stare-into-the-future
 
-实现效果:
-<iframe src="http://pv35g2uxf.bkt.clouddn.com/SSSS.mp4" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
+demo: <http://pv35g2uxf.bkt.clouddn.com/SSSS.mp4>
+<!-- <iframe src="http://pv35g2uxf.bkt.clouddn.com/SSSS.mp4" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe> -->
 
