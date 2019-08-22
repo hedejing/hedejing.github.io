@@ -14,6 +14,6 @@ categories: [Show Some Demos]
 [VR Funhouse]: https://store.steampowered.com/app/468700/NVIDIA_VR_Funhouse/
 [VR Funhouse Mod Kit]: https://developer.nvidia.com/vr-funhouse-mod-kit
 
-demo: <http://pv35g2uxf.bkt.clouddn.com/vr.mp4>
-<!-- <iframe src="http://pv35g2uxf.bkt.clouddn.com/vr.mp4" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe> -->
+<!-- demo: <http://pv35g2uxf.bkt.clouddn.com/vr.mp4> -->
+<iframe src="https://video-1300072953.cos.ap-shanghai.myqcloud.com/vr.mp4" width="750px" height="500px" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>
 
